@@ -1,0 +1,47 @@
+### StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: roboshop
+  labels:
+    component: mysql
+    project: roboshop
+    tier: database
+spec:
+  selector:
+    matchLabels:
+      component: mysql
+      project: roboshop
+      tier: database
+  serviceName: mysql-headless
+  replicas: 2
+  ### his is pod definition
+  template:
+    metadata:
+      name: mysql
+      labels:
+        component: mysql
+        project: roboshop
+        tier: database
+    spec:
+      containers:
+      - name: mysql 
+        image: "{{ .Values.statefulset.imageURL}}:{{ .Values.statefulset.imageVersion }}"
+        envFrom:
+        - secretRef:
+            name: mysql
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  ### This is pVC definition
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data 
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: ebs-roboshop
+      resources:
+        requests:
+          storage: 2Gi
